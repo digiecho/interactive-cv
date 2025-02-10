@@ -1,22 +1,14 @@
-import { MongoClient, ServerApiVersion } from 'mongodb';
+import { MongoClient } from 'mongodb';
 
-// Load MongoDB connection URI from environment variables
 const uri = process.env.MONGODB_URI;
-
-// Create a MongoClient with Stable API options
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  },
-});
+let client;
 
 async function connectToDatabase() {
-  if (!client.topology || !client.topology.isConnected()) {
-    await client.connect();
+  if (!client) {
+    client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+    if (!client.isConnected()) await client.connect();
   }
-  return client.db('cvShowcase'); // Change to match your database name
+  return client.db('cvShowcase');
 }
 
 export default async function handler(req, res) {
@@ -24,20 +16,11 @@ export default async function handler(req, res) {
     try {
       const db = await connectToDatabase();
       const collection = db.collection('contacts');
-
-      // Ensure required fields exist
-      const { name, email, message } = req.body;
-      if (!name || !email || !message) {
-        return res.status(400).json({ error: 'Missing required fields' });
-      }
-
-      // Insert data into MongoDB
-      const result = await collection.insertOne({ name, email, message, createdAt: new Date() });
-
-      res.status(200).json({ message: 'Message saved successfully', result });
+      const result = await collection.insertOne(req.body);
+      res.status(200).json({ message: 'Message saved', result });
     } catch (error) {
-      console.error('Database error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error(error);
+      res.status(500).json({ error: 'Error saving message' });
     }
   } else {
     res.setHeader('Allow', ['POST']);
