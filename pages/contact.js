@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion } from "framer-motion";
 
 export default function Contact() {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
@@ -26,7 +27,12 @@ export default function Contact() {
   return (
     <div className="max-w-md mx-auto p-4">
       <h1 className="text-3xl font-bold mb-4">Contact Me</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <motion.form
+  initial={{ opacity: 0, y: 50 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.5 }}
+  onSubmit={handleSubmit}
+className="space-y-4">
         <input
           type="text"
           name="name"
@@ -56,7 +62,7 @@ export default function Contact() {
         <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded">
           Send Message
         </button>
-      </form>
+      </motion.form>
       {status && <p className="mt-4">{status}</p>}
     </div>
   );
